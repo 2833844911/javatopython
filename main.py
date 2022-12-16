@@ -103,7 +103,7 @@ class parseClass:
                 start = start+5
                 bh += 1
             else:
-                print("指令未解析", self.code[start])
+                #print("指令未解析", self.code[start])
                 break
 
 
@@ -132,20 +132,20 @@ class myFunCall:
             self.retu = self.args[0].replace(self.args[1], self.args[2])
             self.supperstack.append(self.retu)
         elif data == "java/lang/StringBuilder-append.(Ljava/lang/String;)Ljava/lang/StringBuilder;":
-            # print(self.args)
+            # #print(self.args)
             self.retu = self.args[0]
             self.supperstack.append(self.retu)
         elif data == "java/lang/StringBuilder-toString.()Ljava/lang/String;":
-            # print("is to STring")
-            # print(self.argsre)
-            # print(self.supperstack)
+            # #print("is to STring")
+            # #print(self.argsre)
+            # #print(self.supperstack)
             s = self.supperstack.pop()
             self.supperstack.append(s)
         elif data == 'cbbtopython-print.(I)V' or data == 'cbbtopython-print.(Ljava/lang/String;)V':
-            print("print",self.args[0])
+            print("#print",self.args[0])
         elif data == 'java/lang/String-split.(Ljava/lang/String;)[Ljava/lang/String;':
             p = self.supperstack.pop()
-            print("dada",self.args,p )
+            #print("dada",self.args,p )
 
             self.retu = p.split(self.args[0])
             self.supperstack.append(self.retu)
@@ -171,7 +171,7 @@ class myFunCall:
             print("找不到方法", data)
 
     def funCall(self):
-        # print(self.supperstack, self.argsre.argsNumber)
+        # #print(self.supperstack, self.argsre.argsNumber)
         if self.argsre.argsNumber == 0:
             return
         for i in range(self.argsre.argsNumber):
@@ -215,7 +215,7 @@ class runSme:
     def findModth(self, needFindFun, type=None , args=None):
         argsre = parseArgsF(needFindFun.split('.')[1])
         argsre.parseFun()
-        # print(argsre.argsNumber,needFindFun.split('.')[1])
+        # #print(argsre.argsNumber,needFindFun.split('.')[1])
         if needFindFun in self.createfunstack:
             value = self.createfunstack[needFindFun]
             LocalVariableTable = value['LocalVariableTable'].copy()
@@ -285,8 +285,8 @@ class runSme:
         self.clstack.append(s)
 
     def dup(self):
-        # print("dup :")
-        # print(self.clstack)
+        # #print("dup :")
+        # #print(self.clstack)
         a = self.clstack.pop()
         self.clstack.append(a)
         self.clstack.append(a)
@@ -294,19 +294,19 @@ class runSme:
     def invokespecial(self, data):
         funInfo = self.constantpool.getIndex(int(data[1].hex(), base=16))
         needFindFun = funInfo['classInfo']['data']['data'].decode() +'-'+funInfo['NameAndTypeInfo']['nameInfo']['data'].decode()+'.'+funInfo['NameAndTypeInfo']['nameType']['data'].decode()
-        print("invokespecial",needFindFun)
+        #print("invokespecial",needFindFun)
         argsre = parseArgsF(needFindFun.split('.')[1])
         argsre.parseFun()
         args = []
         for i in range(argsre.argsNumber):
             _ = self.clstack.pop()
-            # print(_)
+            # #print(_)
             args.append(_)
         this = self.clstack.pop()
         if needFindFun == 'java/lang/Object-<init>.()V':
             self.findModth(needFindFun, 'invokespecial')
         elif type(this) == type({}) and "cbbINfo" in this:
-            # print(this)
+            # #print(this)
             args = [this] + args
             this[needFindFun](*args)
         else:
@@ -316,10 +316,9 @@ class runSme:
     def new(self, data):
 
         funInfo = self.constantpool.getIndex(int(data[1].hex(), base=16))
-        print("new", funInfo)
         needFindClass = funInfo['data']['data'].decode()
-        # print("needFindClass", needFindClass)
-        # print(self.clstack)
+        # #print("needFindClass", needFindClass)
+        # #print(self.clstack)
 
         if needFindClass == "cbbtopython$arrayt":
             self.clstack.append(
@@ -337,7 +336,7 @@ class runSme:
                                  "java/lang/StringBuilder-toString.()Ljava/lang/String;":self.java_lang_StringBuilder_toString
                                  })
         else:
-            # print("is open:", needFindClass)
+            # #print("is open:", needFindClass)
             s = JVM("./test/"+ needFindClass+".class", 1)
             s.start(needFindClass)
             self.clstack.append(s)
@@ -347,11 +346,10 @@ class runSme:
         funInfo = self.constantpool.getIndex(int(data[1].hex(), base=16))
         needFindFun = funInfo['classInfo']['data']['data'].decode() + '-' + funInfo['NameAndTypeInfo']['nameInfo'][
             'data'].decode() + '.' + funInfo['NameAndTypeInfo']['nameType']['data'].decode()
-        print("invokevirtual", needFindFun)
         argsre = parseArgsF(needFindFun.split('.')[1])
         argsre.parseFun()
-        # print("length:", argsre.argsNumber)
-        # print(self.clstack)
+        # #print("length:", argsre.argsNumber)
+        # #print(self.clstack)
         args = []
 
         if needFindFun == 'java/lang/Object-<init>.()V' or needFindFun == 'java/lang/String-split.(Ljava/lang/String;)[Ljava/lang/String;':
@@ -360,13 +358,13 @@ class runSme:
 
         for i in range(argsre.argsNumber):
             _ = self.clstack.pop()
-            # print(_)
+            # #print(_)
             args.append(_)
         this = self.clstack.pop()
-        print("this", this)
-        print("args", args)
+        #print("this", this)
+        #print("args", args)
         if type(this) == type({}) and "cbbINfo" in this:
-            # print("iscome", self.clstack, args)
+            # #print("iscome", self.clstack, args)
             args = [this]+args
             this[needFindFun](*args)
         else:
@@ -377,37 +375,37 @@ class runSme:
         d = self.clstack.pop()
         name = fieldInfo['NameAndTypeInfo']['nameInfo']['data'].decode()
         fyy = self.clstack.pop()
-        # print("putfield", d)
-        # print(self.clstack)
+        # #print("putfield", d)
+        # #print(self.clstack)
         self.globalThis[name] = d
-        # print(fieldInfo)
-        # print(self.globalThis)
+        # #print(fieldInfo)
+        # #print(self.globalThis)
 
     def getfield(self, data):
-        # print("isco")
-        # print(self.globalThis)
+        # #print("isco")
+        # #print(self.globalThis)
         fieldInfo = self.constantpool.getIndex(int(data[1].hex(), base=16))
         name = fieldInfo['NameAndTypeInfo']['nameInfo']['data'].decode()
         fyy = self.clstack.pop()
 
         d = self.globalThis[name]
-        # print("getfield", d)
+        # #print("getfield", d)
         self.clstack.append(d)
-        # print(fieldInfo)
-        # print(self.globalThis)
-        # print(self.clstack)
+        # #print(fieldInfo)
+        # #print(self.globalThis)
+        # #print(self.clstack)
 
     def dup_x1(self):
-        # print("dup_x1")
-        # print(self.clstack)
+        # #print("dup_x1")
+        # #print(self.clstack)
         s = self.clstack.pop()
-        # print([s])
+        # #print([s])
         self.clstack.append(s)
         self.clstack.append(s)
         self.clstack.append(s)
 
     def invokestatic(self, data):
-        # print(self.clstack)
+        # #print(self.clstack)
         funInfo = self.constantpool.getIndex(int(data[1].hex(), base=16))
 
         needFindFun = funInfo['classInfo']['data']['data'].decode() + '-' + funInfo['NameAndTypeInfo']['nameInfo'][
@@ -421,19 +419,19 @@ class runSme:
         self.findModth(needFindFun, 'invokedynamic', args=args)
 
     def java_lang_StringBuilder_init(self, this):
-        print("use java_lang_StringBuilder_init")
-        # print(self.LocalVariableTable)
+        #print("use java_lang_StringBuilder_init")
+        # #print(self.LocalVariableTable)
         pass
 
     def java_lang_StringBuilder_append(self, this, data):
-        print("java_lang_StringBuilder_append")
-        print(this)
-        print(data)
+        #print("java_lang_StringBuilder_append")
+        #print(this)
+        #print(data)
         this['data'] += data
         self.clstack.append(this)
 
     def java_lang_StringBuilder_toString(self,this):
-        print("java_lang_StringBuilder_toString",this)
+        #print("java_lang_StringBuilder_toString",this)
         self.clstack.append(this['data'])
 
     def cbbtopython_arrayt_put(self, this, data):
@@ -523,10 +521,10 @@ class runSme:
     def if_icmpge(self, data):
         s = self.clstack.pop()
         a = self.clstack.pop()
-        # print(s,a)
+        # #print(s,a)
         if s <= a:
             d = self.getint(int(data[1].hex(), base=16))
-            # print("come", d)
+            # #print("come", d)
             return d
         return 3
 
@@ -642,7 +640,7 @@ class runSme:
 
     def arraylength(self):
         d = self.clstack.pop()
-        # print("array",d)
+        # #print("array",d)
         s = len(d)
         self.clstack.append(s)
 
@@ -665,7 +663,7 @@ class runSme:
             return
         start = 0
         while 1:
-            print("指令：", start, self.Code[start])
+            #print("指令：", start, self.Code[start])
             if self.Code[start][0] == 2:
                 self.iconst_m1()
                 start += 1
@@ -865,7 +863,7 @@ class runSme:
                 self.idiv()
                 start += 1
             else:
-                print("指令没有执行", start,self.Code)
+                #print("指令没有执行", start,self.Code)
                 break
 
 
@@ -883,7 +881,7 @@ class JVM:
         self.globalThis = {}
         for _ in self.jvmparse.fieldInfo.fieldInfoPrase:
             key = _['nameIndex']['yhhData']['data'].decode()
-            # print(key)
+            # #print(key)
             self.globalThis[key] = None
 
         # 方法栈
@@ -916,38 +914,38 @@ class JVM:
         for _ in self.jvmparse.attributeList:
             if _['attributeNameIndex']['yhhData']['data'] == b'BootstrapMethods':
                 d = _['bootstrapMethod']
-        # print(self.createfunstack)
+        # #print(self.createfunstack)
 
         for key, value in self.createfunstack.items():
             if key == funName:
-                # print("key", key)
+                # #print("key", key)
                 clstack = value['clstack'].copy()
 
-                # print("is come",key)
+                # #print("is come",key)
                 LocalVariableTable = value['LocalVariableTable'].copy()
                 LocalVariableTable[0]['data'] = value
                 clstack += data
                 # for index, i in enumerate(data):
                 #     LocalVariableTable[index+1]['data'] = i
-                # print("clsk", clstack)
+                # #print("clsk", clstack)
                 s = runSme(value,clstack, LocalVariableTable, self.createfunstack, self.jvmparse.constantpool,supperstack, d, self.globalThis, 1)
                 s.run()
                 return
-        print("没有找到函数：", funName)
+        #print("没有找到函数：", funName)
 
     def callFunstat(self, funName, supperstack, data):
         d = []
         for _ in self.jvmparse.attributeList:
             if _['attributeNameIndex']['yhhData']['data'] == b'BootstrapMethods':
                 d = _['bootstrapMethod']
-        # print(self.createfunstack)
+        # #print(self.createfunstack)
 
         for key, value in self.createfunstack.items():
             if key == funName:
-                # print("key", key)
+                # #print("key", key)
                 clstack = value['clstack'].copy()
                 if key.split('.')[0] == self.fileName + "-<init>":
-                    # print("is come",key)
+                    # #print("is come",key)
                     LocalVariableTable = value['LocalVariableTable'].copy()
                     LocalVariableTable[0]['data'] = value
                 else:
@@ -956,11 +954,11 @@ class JVM:
                 s = runSme(value,clstack, LocalVariableTable, self.createfunstack, self.jvmparse.constantpool,supperstack, d,self.globalThis)
                 s.run()
                 return
-        print("没有找到函数：", funName)
+        #print("没有找到函数：", funName)
 
     def createFunStack(self):
         for i in self.jvmparse.methodsinfo.methodInfotable:
-            # print("ca", i)
+            # #print("ca", i)
             # 解析参数
             argsre = parseArgsF(i['descriptorIndex']['yhhData']['data'].decode())
             argsre.parseFun()
